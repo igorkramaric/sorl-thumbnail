@@ -78,13 +78,17 @@ class EngineBase(object):
         Wrapper for ``_scale``
         """
         upscale = options['upscale']
+        transform = options['transform']
         x_image, y_image = map(float, self.get_image_size(image))
-        factor = self._calculate_scaling_factor(x_image, y_image, geometry, options)
+        if not transform:
+            factor = self._calculate_scaling_factor(x_image, y_image, geometry, options)
 
-        if factor < 1 or upscale:
-            width = toint(x_image * factor)
-            height = toint(y_image * factor)
-            image = self._scale(image, width, height)
+            if factor < 1 or upscale:
+                width = toint(x_image * factor)
+                height = toint(y_image * factor)
+                image = self._scale(image, width, height)
+        else:
+            image = self._scale(image, x_image, y_image)
 
         return image
 
