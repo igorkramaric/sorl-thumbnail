@@ -88,7 +88,7 @@ class EngineBase(object):
                 height = toint(y_image * factor)
                 image = self._scale(image, width, height)
         else:
-            image = self._scale(image, x_image, y_image)
+            image = self._scale(image, geometry[0], geometry[1])
 
         return image
 
