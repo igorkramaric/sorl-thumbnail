@@ -67,7 +67,7 @@ class ThumbnailBackend(object):
 
             return getattr(settings, 'THUMBNAIL_FORMAT', default_settings.THUMBNAIL_FORMAT)
 
-    def get_thumbnail(self, file_, geometry_string, **options):
+    def get_thumbnail(self, file_, geometry_string, key_suffix=None, **options):
         """
         Returns thumbnail as an ImageFile instance for file with geometry and
         options given. First it will try to get it from the key value store,
@@ -97,7 +97,7 @@ class ThumbnailBackend(object):
 
         name = self._get_thumbnail_filename(source, geometry_string, options)
         thumbnail = ImageFile(name, default.storage)
-        cached = default.kvstore.get(thumbnail)
+        cached = default.kvstore.get(thumbnail, key_suffix=key_suffix)
 
         if cached:
             return cached
@@ -138,8 +138,8 @@ class ThumbnailBackend(object):
         # If the thumbnail exists we don't create it, the other option is
         # to delete and write but this could lead to race conditions so I
         # will just leave that out for now.
-        default.kvstore.get_or_set(source)
-        default.kvstore.set(thumbnail, source)
+        default.kvstore.get_or_set(source, key_suffix=key_suffix)
+        default.kvstore.set(thumbnail, source, key_suffix=key_suffix)
         return thumbnail
 
     def delete(self, file_, delete_file=True):

@@ -19,19 +19,19 @@ def del_prefix(key):
 
 
 class KVStoreBase(object):
-    def get(self, image_file):
+    def get(self, image_file, key_suffix=None):
         """
         Gets the ``image_file`` from store. Returns ``None`` if not found.
         """
-        return self._get(image_file.key)
+        return self._get(image_file.key + key_suffix)
 
-    def set(self, image_file, source=None):
+    def set(self, image_file, source=None, key_suffix=None):
         """
         Updates store for the `image_file`. Makes sure the `image_file` has a
         size set.
         """
         image_file.set_size()  # make sure its got a size
-        self._set(image_file.key, image_file)
+        self._set(image_file.key + key_suffix, image_file)
         if source is not None:
             if not self.get(source):
                 # make sure the source is in kvstore
@@ -39,34 +39,34 @@ class KVStoreBase(object):
                                      'that is not in kvstore.' % source.name)
 
             # Update the list of thumbnails for source.
-            thumbnails = self._get(source.key, identity='thumbnails') or []
+            thumbnails = self._get(source.key + key_suffix, identity='thumbnails') or []
             thumbnails = set(thumbnails)
-            thumbnails.add(image_file.key)
+            thumbnails.add(image_file.key + key_suffix)
 
-            self._set(source.key, list(thumbnails), identity='thumbnails')
+            self._set(source.key + key_suffix, list(thumbnails), identity='thumbnails')
 
-    def get_or_set(self, image_file):
-        cached = self.get(image_file)
+    def get_or_set(self, image_file, key_suffix=None):
+        cached = self.get(image_file, key_suffix=key_suffix)
         if cached is not None:
             return cached
-        self.set(image_file)
+        self.set(image_file, key_suffix=key_suffix)
         return image_file
 
-    def delete(self, image_file, delete_thumbnails=True):
+    def delete(self, image_file, delete_thumbnails=True, key_suffix=None):
         """
         Deletes the reference to the ``image_file`` and deletes the references
         to thumbnails as well as thumbnail files if ``delete_thumbnails`` is
         `True``. Does not delete the ``image_file`` is self.
         """
         if delete_thumbnails:
-            self.delete_thumbnails(image_file)
-        self._delete(image_file.key)
+            self.delete_thumbnails(image_file, key_suffix)
+        self._delete(image_file.key + key_suffix)
 
-    def delete_thumbnails(self, image_file):
+    def delete_thumbnails(self, image_file, key_suffix=None):
         """
         Deletes references to thumbnails as well as thumbnail ``image_files``.
         """
-        thumbnail_keys = self._get(image_file.key, identity='thumbnails')
+        thumbnail_keys = self._get(image_file.key + key_suffix, identity='thumbnails')
         if thumbnail_keys:
             # Delete all thumbnail keys from store and delete the
             # thumbnail ImageFiles.
@@ -78,7 +78,7 @@ class KVStoreBase(object):
                     thumbnail.delete()  # delete the actual file
 
             # Delete the thumbnails key from store
-            self._delete(image_file.key, identity='thumbnails')
+            self._delete(image_file.key + key_suffix, identity='thumbnails')
 
     def delete_all_thumbnail_files(self):
         for key in self._find_keys(identity='thumbnails'):
