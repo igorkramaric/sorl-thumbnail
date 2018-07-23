@@ -33,7 +33,7 @@ class KVStoreBase(object):
         image_file.set_size()  # make sure its got a size
         self._set(image_file.key + key_suffix, image_file)
         if source is not None:
-            if not self.get(source):
+            if not self.get(source, key_suffix=key_suffix):
                 # make sure the source is in kvstore
                 raise ThumbnailError('Cannot add thumbnails for source: `%s` '
                                      'that is not in kvstore.' % source.name)
