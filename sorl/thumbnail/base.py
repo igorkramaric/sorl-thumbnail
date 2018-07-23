@@ -73,6 +73,8 @@ class ThumbnailBackend(object):
         options given. First it will try to get it from the key value store,
         secondly it will create it.
         """
+        if not key_suffix:
+            key_suffix = ""
         logger.debug('Getting thumbnail for file [%s] at [%s]', file_, geometry_string)
 
         if file_:
