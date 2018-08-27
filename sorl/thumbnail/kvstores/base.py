@@ -45,7 +45,7 @@ class KVStoreBase(object):
 
             self._set(source.key + key_suffix, list(thumbnails), identity='thumbnails')
 
-    def get_or_set(self, image_file, key_suffix=None):
+    def get_or_set(self, image_file, key_suffix=""):
         cached = self.get(image_file, key_suffix=key_suffix)
         if cached is not None:
             return cached
