@@ -45,14 +45,14 @@ class KVStoreBase(object):
 
             self._set(source.key + key_suffix, list(thumbnails), identity='thumbnails')
 
-    def get_or_set(self, image_file, key_suffix=""):
+    def get_or_set(self, image_file, key_suffix=None):
         cached = self.get(image_file, key_suffix=key_suffix)
         if cached is not None:
             return cached
         self.set(image_file, key_suffix=key_suffix)
         return image_file
 
-    def delete(self, image_file, delete_thumbnails=True, key_suffix=None):
+    def delete(self, image_file, delete_thumbnails=True, key_suffix=""):
         """
         Deletes the reference to the ``image_file`` and deletes the references
         to thumbnails as well as thumbnail files if ``delete_thumbnails`` is
@@ -62,7 +62,7 @@ class KVStoreBase(object):
             self.delete_thumbnails(image_file, key_suffix)
         self._delete(image_file.key + key_suffix)
 
-    def delete_thumbnails(self, image_file, key_suffix=None):
+    def delete_thumbnails(self, image_file, key_suffix=""):
         """
         Deletes references to thumbnails as well as thumbnail ``image_files``.
         """
