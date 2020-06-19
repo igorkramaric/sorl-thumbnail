@@ -1,4 +1,3 @@
-from __future__ import unicode_literals
 import logging
 
 from django import forms
@@ -22,8 +21,8 @@ class AdminImageWidget(forms.ClearableFileInput):
     )
     template_with_clear = '<label>%(clear_checkbox_label)s: %(clear)s</label>'
 
-    def render(self, name, value, attrs=None):
-        output = super(AdminImageWidget, self).render(name, value, attrs)
+    def render(self, name, value, attrs=None, **kwargs):
+        output = super(AdminImageWidget, self).render(name, value, attrs, **kwargs)
         if value and hasattr(value, 'url'):
             ext = 'JPEG'
             try:
@@ -57,8 +56,8 @@ class AdminImageMixin(object):
     show nicer form widget
     """
 
-    def formfield_for_dbfield(self, db_field, **kwargs):
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
         if isinstance(db_field, ImageField):
             return db_field.formfield(widget=AdminImageWidget)
         sup = super(AdminImageMixin, self)
-        return sup.formfield_for_dbfield(db_field, **kwargs)
+        return sup.formfield_for_dbfield(db_field, request, **kwargs)

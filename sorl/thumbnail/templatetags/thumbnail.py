@@ -1,6 +1,3 @@
-# encoding=utf-8
-
-from __future__ import unicode_literals
 import decimal
 import logging
 import sys
@@ -10,7 +7,6 @@ from functools import wraps
 
 from django.template import Library, Node, NodeList, TemplateSyntaxError
 from django.utils.encoding import smart_str
-from django.utils.six import text_type
 from django.conf import settings
 
 from sorl.thumbnail.conf import settings as sorl_settings
@@ -129,7 +125,7 @@ class ThumbnailNode(ThumbnailNodeBase):
         options = {}
         for key, expr in self.options:
             noresolve = {'True': True, 'False': False, 'None': None}
-            value = noresolve.get(text_type(expr), expr.resolve(context))
+            value = noresolve.get(str(expr), expr.resolve(context))
             if key == 'options':
                 options.update(value)
             else:
@@ -266,8 +262,8 @@ def text_filter(regex_base, value):
     Helper method to regex replace images with captions in different markups
     """
     regex = regex_base % {
-        're_cap': '[a-zA-Z0-9\.\,:;/_ \(\)\-\!\?\"]+',
-        're_img': '[a-zA-Z0-9\.:/_\-\% ]+'
+        're_cap': r'[a-zA-Z0-9\.\,:;/_ \(\)\-\!\?"]+',
+        're_img': r'[a-zA-Z0-9\.:/_\-\% ]+'
     }
     images = re.findall(regex, value)
 
@@ -285,10 +281,10 @@ def text_filter(regex_base, value):
 @safe_filter(error_output='auto')
 @register.filter
 def markdown_thumbnails(value):
-    return text_filter('!\[(%(re_cap)s)?\][ ]?\((%(re_img)s)\)', value)
+    return text_filter(r'!\[(%(re_cap)s)?\][ ]?\((%(re_img)s)\)', value)
 
 
 @safe_filter(error_output='auto')
 @register.filter
 def html_thumbnails(value):
-    return text_filter('<img(?: alt="(%(re_cap)s)?")? src="(%(re_img)s)"', value)
+    return text_filter(r'<img(?: alt="(%(re_cap)s)?")? src="(%(re_img)s)"', value)
