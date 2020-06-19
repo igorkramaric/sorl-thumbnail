@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 import os
 import re
 from subprocess import Popen, PIPE
@@ -65,6 +64,7 @@ class TemplateTestCaseA(BaseTestCase):
         p = Popen(['identify', '-verbose', path], stdout=PIPE)
         p.wait()
         m = re.search('Interlace: JPEG', str(p.stdout.read()))
+        p.stdout.close()
         self.assertEqual(bool(m), True)
 
     def test_nonprogressive(self):
@@ -74,6 +74,7 @@ class TemplateTestCaseA(BaseTestCase):
         p = Popen(['identify', '-verbose', path], stdout=PIPE)
         p.wait()
         m = re.search('Interlace: None', str(p.stdout.read()))
+        p.stdout.close()
         self.assertEqual(bool(m), True)
 
     def test_orientation(self):

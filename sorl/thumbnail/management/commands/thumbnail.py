@@ -1,7 +1,3 @@
-# encoding=utf-8
-
-from __future__ import unicode_literals, print_function
-
 import sys
 
 from django.core.management.base import LabelCommand, CommandError
@@ -51,7 +47,7 @@ class Command(LabelCommand):
 
         if label == 'clear_delete_referenced':
             if verbosity >= 1:
-                print("Delete all thumbnail files referenced in " +
+                print("Delete all thumbnail files referenced in "
                       "Key Value Store", end=' ... ', file=stdout)
 
             default.kvstore.delete_all_thumbnail_files()

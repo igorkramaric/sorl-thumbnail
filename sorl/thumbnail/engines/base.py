@@ -1,6 +1,3 @@
-# coding=utf-8
-from __future__ import division
-
 from sorl.thumbnail.conf import settings
 from sorl.thumbnail.helpers import toint
 from sorl.thumbnail.parsers import parse_crop
@@ -80,15 +77,19 @@ class EngineBase(object):
         upscale = options['upscale']
         transform = options['transform']
         x_image, y_image = map(float, self.get_image_size(image))
-        if not transform:
-            factor = self._calculate_scaling_factor(x_image, y_image, geometry, options)
+        if self.flip_dimensions(image):
+            x_image, y_image = y_image, x_image
 
-            if factor < 1 or upscale:
-                width = toint(x_image * factor)
-                height = toint(y_image * factor)
-                image = self._scale(image, width, height)
-        else:
+        if transform:
             image = self._scale(image, geometry[0], geometry[1])
+            return image
+
+        factor = self._calculate_scaling_factor(x_image, y_image, geometry, options)
+
+        if factor < 1 or upscale:
+            width = toint(x_image * factor)
+            height = toint(y_image * factor)
+            image = self._scale(image, width, height)
 
         return image
 
@@ -170,7 +171,12 @@ class EngineBase(object):
         else:
             x, y = self.get_image_size(image)
 
-        return float(x) / y
+        ratio = float(x) / y
+
+        if self.flip_dimensions(image):
+            ratio = 1.0 / ratio
+
+        return ratio
 
     def get_image_info(self, image):
         """
