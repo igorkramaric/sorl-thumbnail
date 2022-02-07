@@ -1,14 +1,16 @@
 import os
 import re
 from subprocess import Popen, PIPE
-from PIL import Image
 
+from PIL import Image
 from django.template.loader import render_to_string
+from django.template import Template, Context
 from django.test import Client, TestCase
 import pytest
-
 from sorl.thumbnail.conf import settings
 from sorl.thumbnail.engines.pil_engine import Engine as PILEngine
+from sorl.thumbnail.shortcuts import get_thumbnail
+
 from .models import Item
 from .utils import BaseTestCase, override_custom_settings, DATA_DIR
 
@@ -171,9 +173,11 @@ class TemplateTestCaseTemplateTagAlias(BaseTestCase):
 
     def test_nested(self):
         item = Item.objects.get(image='500x500.jpg')
+
         val = render_to_string(
             'thumbnail6_alias.html', {'item': item}
         ).strip()
+
         self.assertEqual(
             val,
             (
@@ -184,6 +188,35 @@ class TemplateTestCaseTemplateTagAlias(BaseTestCase):
                 'width="400" height="400"></a>'
             )
         )
+
+    def test_nested_new_way(self):
+        """ensure that nested thumbnail tags work"""
+        item = Item.objects.get(image='500x500.jpg')
+
+        # get the different cached files using the method directly
+        one_hundred_thumbnail = get_thumbnail(item.image, "100x100")
+        four_hundred_thumbnail = get_thumbnail(item.image, "400x400")
+
+        # render the Template using a Context.
+        # REVIEWERS:  I would prefer to do it this way (rather than render_to_string
+        # with a file) so that we keep the test data inside the tests themselves)
+        template = Template("""
+            {% load sorl_thumbnail %}{% spaceless %}
+            {% thumbnail item.image "100x100" as th %}
+                {% thumbnail item.image "400x400" as im %}
+                <a href="{{ th.url }}"><img src="{{ im.url }}" width="{{ im.width }}" height="{{ im.height }}"></a>
+                {% endthumbnail %}
+            {% endthumbnail %}
+            {% endspaceless %}
+        """)
+
+        rendered_html = template.render(Context({"item": item}))
+
+        # make sure we find the appropriate tags in the results
+        self.assertIn(f'href="{one_hundred_thumbnail.url}"', rendered_html)
+        self.assertIn(f'src="{four_hundred_thumbnail.url}"', rendered_html)
+        self.assertIn('width="400"', rendered_html)
+        self.assertIn('height="400"', rendered_html)
 
     def test_serialization_options(self):
         item = Item.objects.get(image='500x500.jpg')
